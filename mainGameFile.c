@@ -122,6 +122,7 @@ int main()
 	curs_set(0);
 	noecho();
 	cbreak();
+	start_color();
 
 	WINDOW* mazeWindow = NULL;
 	WINDOW* enemyWindow = NULL;
@@ -131,6 +132,7 @@ int main()
 	enemyWindow = newwin(screenHeight, screenWidth, 0, screenWidth);
 	keypad(mazeWindow, TRUE);
 	wrefresh(stdscr);
+
 	StartMenu(mazeWindow);
 	//Start main game loop
 	int userLevel = 1;
@@ -208,13 +210,30 @@ int main()
 void PrintMaze(char array[][22], int rows, int cols, WINDOW *window)
 {
 	//simply go through the 2d array one element at a time and print that element to a window
+	init_pair(1, COLOR_MAGENTA, COLOR_BLACK);
+	init_pair(2, COLOR_BLUE, COLOR_BLACK);
 	int counter1 = 0;
 	while (counter1 < rows)
 	{
 		int counter2 = 0;
 		while (counter2 < cols)
 		{
-			wprintw(window, "%c", array[counter1][counter2]);
+			if (array[counter1][counter2] == '+')
+			{
+				wattron(window, COLOR_PAIR(1));
+				wprintw(window, "%c", array[counter1][counter2]);
+				wattroff(window, COLOR_PAIR(1));
+			}
+			else if (array[counter1][counter2] == '-' || array[counter1][counter2] == '|')
+			{
+				wattron(window, COLOR_PAIR(2));
+				wprintw(window, "%c", array[counter1][counter2]);
+				wattroff(window, COLOR_PAIR(2));
+			}
+			else
+			{
+				wprintw(window, "%c", array[counter1][counter2]);
+			}
 			counter2++;
 		}
 		counter1++;
@@ -242,6 +261,8 @@ void StoreMaze(char array[][22], int rows, int cols, FILE *file)
 void PrintEnemy(struct Enemy in, int rows, int cols, WINDOW *window)
 {
 	//print out the enemy's power, name, and graphics array
+	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
+	wattron(window, COLOR_PAIR(3));
 	wprintw(window, "Enemy level: %d\n", in.power);
 	int counter1 = 0;
 	wprintw(window, "Name: ");
@@ -250,6 +271,7 @@ void PrintEnemy(struct Enemy in, int rows, int cols, WINDOW *window)
 		wprintw(window, "%c", in.name[counter1]);
 		counter1 ++;
 	}
+	wattroff(window, COLOR_PAIR(3));
 	counter1 = 0;
 	while (counter1 < rows)
 	{
@@ -320,7 +342,10 @@ int MazeTraversal(char array[][22], int rows, int cols, int timeLimit, WINDOW *w
 	time(&startTime);
 	while (1)
 	{
+		init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+		wattron(window, COLOR_PAIR(4));
 		wprintw(window, "LEVEL: %d\n\n", userLevel);
+		wattroff(window, COLOR_PAIR(4));
 		wprintw(window, "Use the arrow keys to navigate the X through the maze\n");
 		PrintMaze(array, rows, cols, window);
 		int input = wgetch(window);
