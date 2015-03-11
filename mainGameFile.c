@@ -20,15 +20,17 @@ void PrintMaze(char array[][22], int rows, int cols, WINDOW *window);
 void StoreMaze(char array[][22], int rows, int cols, FILE *file);
 void PrintEnemy(struct Enemy in, int rows, int cols, WINDOW *window);
 void StoreEnemy(struct Enemy* in, int rows, int cols, FILE *file);
-int MazeTraversal(char array[][22], int rows, int cols, int timeLimit, WINDOW *window, int userLevel);
+int MazeTraversal(int *bonusRoom, char array[][22], int rows, int cols, int timeLimit, WINDOW *window, int userLevel);
 int Random();
 int DiceRoll(WINDOW *window, struct Enemy in);
 void StartMenu(WINDOW *window);
-int MazeCall(WINDOW *mazeWindow, int mazeRows, int mazeCols, int timeLimit[10], int userLevel, char mazeOne[][22], char mazeTwo[][22], char mazeThree[][22], char mazeFour[][22], char mazeFive[][22], char mazeSix[][22], char mazeSeven[][22], char mazeEight[][22], char mazeNine[][22], char mazeTen[][22]);
+int MazeCall(int *bonusRoom, WINDOW *mazeWindow, int mazeRows, int mazeCols, int timeLimit[10], int userLevel, char mazeOne[][22], char mazeTwo[][22], char mazeThree[][22], char mazeFour[][22], char mazeFive[][22], char mazeSix[][22], char mazeSeven[][22], char mazeEight[][22], char mazeNine[][22], char mazeTen[][22]);
+int BonusRoom(int userLevel, WINDOW *window);
 
 
 int main()
 {
+	srand( time( NULL ) ) ;
 	int mazeCols = 22;
 	int mazeRows = 21;
 	int enemyCols = 11;
@@ -132,15 +134,24 @@ int main()
 	enemyWindow = newwin(screenHeight, screenWidth, 0, screenWidth);
 	keypad(mazeWindow, TRUE);
 	wrefresh(stdscr);
-
+	//start up a main menu for the user to determine whether or not to see instructions first
 	StartMenu(mazeWindow);
 	//Start main game loop
 	int userLevel = 1;
+	int bonusRoom = 0;//if =1, then the user qualifies to visit the bonus room
 	int timeLimit[10] = {50, 47, 44, 41, 38, 35, 32, 29, 26, 23};
 	int success = 0;
 	while (1)
 	{
-		success = MazeCall(mazeWindow, mazeRows, mazeCols, timeLimit, userLevel, mazeOne, mazeTwo, mazeThree, mazeFour, mazeFive, mazeSix, mazeSeven, mazeEight, mazeNine, mazeTen);
+		//if it isn't the first time through, check to see if the user qualifies to go to the bonus room
+		if (userLevel > 1)
+		{
+			if (bonusRoom != 0)
+			{
+				userLevel = userLevel + BonusRoom(userLevel, mazeWindow);
+			}
+		}
+		success = MazeCall(&bonusRoom, mazeWindow, mazeRows, mazeCols, timeLimit, userLevel, mazeOne, mazeTwo, mazeThree, mazeFour, mazeFive, mazeSix, mazeSeven, mazeEight, mazeNine, mazeTen);
 		if (success != 0)
 		{
 			wprintw(mazeWindow, "You made it through the maze in time!");
@@ -306,7 +317,7 @@ void StoreEnemy(struct Enemy* in, int rows, int cols, FILE *file)
 	}
 }
 
-int MazeTraversal(char array[][22], int rows, int cols, int timeLimit, WINDOW *window, int userLevel)
+int MazeTraversal(int *bonusRoom, char array[][22], int rows, int cols, int timeLimit, WINDOW *window, int userLevel)
 {
 	//allow the user to traverse through the maze
 	int success = 0; //if zero, then the user failed. if nonzero, the user succeeded
@@ -426,9 +437,14 @@ int MazeTraversal(char array[][22], int rows, int cols, int timeLimit, WINDOW *w
 	}
 	time(&endTime);
 	double totalTime = difftime(endTime, startTime);
+	//check to see if user made time limit, also check to see if user qualifies for bonus room
 	if (totalTime <= timeLimit)
 	{
 		success = 1;
+	}
+	if (totalTime <= (timeLimit/2))
+	{
+		*bonusRoom = 1;
 	}
 	return success;
 }
@@ -447,7 +463,6 @@ int DiceRoll(WINDOW *window,struct Enemy in)
 	wprintw(window, "Press any key to roll the dice\n");
 	wgetch(window);
 	wprintw(window, "Rolling 3 Dice\n") ;
-	srand( time( NULL ) ) ;
 	int d1 = Random();
 	int d2 = Random();
 	int d3 = Random();
@@ -493,40 +508,41 @@ void StartMenu(WINDOW *window)
 	wrefresh(window);
 }
 
-int MazeCall(WINDOW *mazeWindow, int mazeRows, int mazeCols, int timeLimit[], int userLevel, char mazeOne[][22], char mazeTwo[][22], char mazeThree[][22], char mazeFour[][22], char mazeFive[][22], char mazeSix[][22], char mazeSeven[][22], char mazeEight[][22], char mazeNine[][22], char mazeTen[][22])
+int MazeCall(int *bonusRoom, WINDOW *mazeWindow, int mazeRows, int mazeCols, int timeLimit[], int userLevel, char mazeOne[][22], char mazeTwo[][22], char mazeThree[][22], char mazeFour[][22], char mazeFive[][22], char mazeSix[][22], char mazeSeven[][22], char mazeEight[][22], char mazeNine[][22], char mazeTen[][22])
 {
+	//switch case used to determine, based on user leve, which maze should be used to call the MazeTraversal function
 	int completionStatus = 0;
 	switch (userLevel)
 	{
 		case 1:
-			completionStatus = MazeTraversal(mazeOne, mazeRows, mazeCols, timeLimit[userLevel -1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeOne, mazeRows, mazeCols, timeLimit[userLevel -1], mazeWindow, userLevel);
 			break;
 		case 2:
-			completionStatus = MazeTraversal(mazeTwo, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeTwo, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
 			break;
 		case 3:
-			completionStatus = MazeTraversal(mazeThree, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeThree, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
 			break;
 		case 4:
-			completionStatus = MazeTraversal(mazeFour, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeFour, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
 			break;
 		case 5:
-			completionStatus = MazeTraversal(mazeFive, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeFive, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
 			break;
 		case 6:
-			completionStatus = MazeTraversal(mazeSix, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeSix, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
 			break;
 		case 7:
-			completionStatus = MazeTraversal(mazeSeven, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeSeven, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
 			break;
 		case 8:
-			completionStatus = MazeTraversal(mazeEight, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeEight, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
 			break;
 		case 9:
-			completionStatus = MazeTraversal(mazeNine, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeNine, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
 			break;
 		case 10:
-			completionStatus = MazeTraversal(mazeTen, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
+			completionStatus = MazeTraversal(bonusRoom, mazeTen, mazeRows, mazeCols, timeLimit[userLevel - 1], mazeWindow, userLevel);
 			break;
 		default:
 			break;
@@ -583,4 +599,91 @@ int EnemyCall(WINDOW *enemyWindow, int enemyRows, int enemyCols, int userLevel, 
 			break;
 	}
 	return rollStatus;
+}
+
+int BonusRoom(int userLevel, WINDOW *window)
+{
+	//tell user they are in the bonus room, print 3 boxes with numbers in the center
+	int success = 0;
+	int winningBox = (rand() % 3) + 1;
+	wprintw(window, "You made it through the maze and found\na BONUS ROOM! Choose a box, if you\nchoose correctly, you will level up!");
+
+	mvwprintw(window, 4, 0, "(press the '1' key to choose)");
+	init_pair(7, COLOR_BLACK, COLOR_RED);
+        wattron(window, COLOR_PAIR(1));
+        mvwprintw(window, 5, 5, "   ");
+        mvwprintw(window, 6, 5, " 1 ");
+        mvwprintw(window, 7, 5, "   ");
+        wattroff(window, COLOR_PAIR(1));
+
+	mvwprintw(window, 9, 0, "(press the '2' key to choose)");
+        init_pair(8, COLOR_BLACK, COLOR_BLUE);
+        wattron(window, COLOR_PAIR(2));
+        mvwprintw(window, 10, 5, "   ");
+        mvwprintw(window, 11, 5, " 2 ");
+        mvwprintw(window, 12, 5, "   ");
+        wattroff(window, COLOR_PAIR(2));
+
+	mvwprintw(window, 14, 0, "(press the '3' key to choose)");
+        init_pair(9, COLOR_BLACK, COLOR_YELLOW);
+        wattron(window, COLOR_PAIR(3));
+        mvwprintw(window, 15, 5, "   ");
+        mvwprintw(window, 16, 5, " 3 ");
+        mvwprintw(window, 17, 5, "   ");
+        wattroff(window, COLOR_PAIR(3));
+	//check for user input, if their choice is equal to randomly generated winning number, change success variable to 1
+	while (1)
+	{
+		int input = wgetch(window) - '0';
+		switch (input)
+		{
+			case 1:
+				if (1 == winningBox)
+				{
+					success = 1;
+					mvwprintw(window, 20, 0, "YOU GUESSED RIGHT, LEVEL UP!");
+				}
+				else
+				{
+					success = 0;
+					mvwprintw(window, 20, 0, "YOU GUESSED WRONG!");
+				}
+				break;
+			case 2:
+				if (2 == winningBox)
+				{
+					success = 1;
+					mvwprintw(window, 20, 0, "YOU GUESSED RIGHT, LEVEL UP!");
+				}
+				else
+				{
+					success = 0;
+					mvwprintw(window, 20, 0, "YOU GUESSED WRONG!");
+				}
+				break;
+			case 3:
+				if (3 == winningBox)
+				{
+					success = 1;
+					mvwprintw(window, 20, 0, "YOU GUESSED RIGHT, LEVEL UP!");
+				}
+				else
+				{
+					success = 0;
+					mvwprintw(window, 20, 0, "YOU GUESSED WRONG!");
+				}
+				break;
+			default:
+				break;
+		}
+		if (input == 1 || input == 2 || input == 3)
+		{
+			break;
+		}
+	}
+	mvwprintw(window, 22, 0, "(press any key to continue)");
+	wgetch(window);
+	wclear(window);
+	wrefresh(window);
+	return success;//if return value is 1, user levels up
 }
