@@ -25,6 +25,7 @@ int Random();
 int DiceRoll(WINDOW *window, struct Enemy in);
 void StartMenu(WINDOW *window);
 int MazeCall(int *bonusRoom, WINDOW *mazeWindow, int mazeRows, int mazeCols, int timeLimit[10], int userLevel, char mazeOne[][22], char mazeTwo[][22], char mazeThree[][22], char mazeFour[][22], char mazeFive[][22], char mazeSix[][22], char mazeSeven[][22], char mazeEight[][22], char mazeNine[][22], char mazeTen[][22]);
+int EnemyCall(WINDOW *enemyWindow, int enemyRows, int enemyCols, int userLevel, struct Enemy enemyOne, struct Enemy enemyTwo, struct Enemy enemyThree, struct Enemy enemyFour, struct Enemy enemyFive, struct Enemy enemySix, struct Enemy enemySeven, struct Enemy enemyEight, struct Enemy enemyNine, struct Enemy enemyTen);
 int BonusRoom(int userLevel, WINDOW *window);
 
 
