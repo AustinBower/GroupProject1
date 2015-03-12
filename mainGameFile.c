@@ -1,21 +1,21 @@
-/*
-Austin Dhiraj Dave
-CS240
-Group Project 1
+/*  GROUP PROJECT 1
+    PROGRAMMER: AUSTIN BOWER AND DHIRAJ RANJIT
+    DATE OF LAST REVISION: 03/12/2015
+    PURPOSE: TO BUILD A GAME "MAZES AND MEN" IN C PROGRAMMING LANGUAGE USING CURSES LIBRARY.
 */
-
 #include <stdio.h>
 #include <stdlib.h>
+// curses.h is the header file for curses API
 #include <curses.h>
 #include <time.h>
-
+//defining a struct for storing enemy's data
 struct Enemy
 {
 	int power;
 	char name[10];
 	char array[10][11];
 };
-
+//Function declaration: see Technical Manual for further detail
 void PrintMaze(char array[][22], int rows, int cols, WINDOW *window);
 void StoreMaze(char array[][22], int rows, int cols, FILE *file);
 void PrintEnemy(struct Enemy in, int rows, int cols, WINDOW *window);
@@ -31,12 +31,14 @@ int BonusRoom(int userLevel, WINDOW *window);
 
 int main()
 {
+    //Using srand () function by seeding the random-number generator with current time so that the numbers will be different every time we run.
 	srand( time( NULL ) ) ;
+	//Initializing arrays for storing maze and enemy data.
 	int mazeCols = 22;
 	int mazeRows = 21;
 	int enemyCols = 11;
 	int enemyRows = 10;
-	//Open up the file, read in the text file data into an array, print the array, and close the file as we won't need it again
+	//Open up the file, read in the text file data into an array, print the array, and close the file as we won't need it again. For demo version, Only reading ten text files.
 	FILE *file1 = fopen("maze1.txt", "r");
 	char mazeOne[mazeRows][mazeCols];
 	StoreMaze(mazeOne, mazeRows, mazeCols, file1);
@@ -78,7 +80,7 @@ int main()
 	StoreMaze(mazeTen, mazeRows, mazeCols, file10);
 	fclose(file10);
 
-	//Read in enemy graphics files
+	//Read in enemy graphics files. For demo version, Only reading ten text files. For demo version, Only reading ten text files.
 	FILE *enemy1 = fopen("enemy1.txt", "r");
 	struct Enemy enemyOne;
 	StoreEnemy(&enemyOne, enemyRows, enemyCols, enemy1);
@@ -126,7 +128,7 @@ int main()
 	noecho();
 	cbreak();
 	start_color();
-
+    //Using two different windows i.e. one for the displaying the maze and one for displaying the enemy.
 	WINDOW* mazeWindow = NULL;
 	WINDOW* enemyWindow = NULL;
 	int screenHeight = getmaxy(stdscr);
@@ -139,7 +141,9 @@ int main()
 	StartMenu(mazeWindow);
 	//Start main game loop
 	int userLevel = 1;
-	int bonusRoom = 0;//if =1, then the user qualifies to visit the bonus room
+	//if =1, then the user qualifies to visit the bonus room
+	int bonusRoom = 0;
+	//Specifying the time limit from 50 to 23. It helps to set the difficulty level.
 	int timeLimit[10] = {50, 47, 44, 41, 38, 35, 32, 29, 26, 23};
 	int success = 0;
 	while (1)
